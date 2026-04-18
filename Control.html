@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)file:///C:/Users/zaidj/Downloads/Control_Room_Dashboard_Fixed.html -->
+<html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control Room Dashboard — Aaber Project</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#0B1120;color:#E2E8F0;min-height:100vh;overflow-x:hidden}
+
+/* Header */
+.top-bar{background:#0F172A;border-bottom:1px solid #1E293B;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo-section{display:flex;align-items:center;gap:12px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#3B82F6,#1E40AF);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:#fff}
+.logo-text{font-size:16px;font-weight:600;color:#F8FAFC}
+.logo-sub{font-size:11px;color:#94A3B8;margin-top:1px}
+.top-stats{display:flex;gap:16px}
+.top-stat{text-align:center;padding:0 16px;border-right:1px solid #1E293B}
+.top-stat:first-child{border-right:none}
+.top-stat-val{font-size:18px;font-weight:600;color:#F8FAFC}
+.top-stat-lbl{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+.time-now{display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.1);padding:6px 14px;border-radius:8px;border:1px solid rgba(16,185,129,0.3)}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:#10B981;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.time-text{font-size:12px;color:#6EE7B7;font-weight:500}
+.time-val{font-family:monospace;font-size:13px;color:#F8FAFC}
+
+/* Main grid */
+.main-container{padding:16px;display:grid;grid-template-columns:280px 1fr 320px;gap:14px;height:calc(100vh - 65px)}
+
+/* Left sidebar - KPIs */
+.sidebar-left{display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.section-title{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;padding:0 4px}
+.kpi-card{background:#0F172A;border:1px solid #1E293B;border-radius:10px;padding:14px;transition:all 0.2s}
+.kpi-card:hover{border-color:#334155}
+.kpi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.kpi-label{font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px}
+.kpi-trend{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600}
+.trend-up{background:rgba(16,185,129,0.15);color:#6EE7B7}
+.trend-down{background:rgba(239,68,68,0.15);color:#FCA5A5}
+.trend-stable{background:rgba(148,163,184,0.15);color:#CBD5E1}
+.kpi-value{font-size:26px;font-weight:600;color:#F8FAFC;line-height:1}
+.kpi-suffix{font-size:13px;color:#64748B;font-weight:400;margin-right:4px}
+.kpi-sparkline{height:24px;margin-top:10px;display:flex;align-items:flex-end;gap:2px}
+.spark-bar{flex:1;background:linear-gradient(180deg,#3B82F6,#1E40AF);border-radius:1px;min-height:4px}
+
+/* Center - Map + Video wall */
+.center-main{display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.map-panel{background:#0F172A;border:1px solid #1E293B;border-radius:12px;padding:14px;flex:1;position:relative;overflow:hidden}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.panel-title{font-size:14px;font-weight:600;color:#F8FAFC}
+.panel-actions{display:flex;gap:6px}
+.panel-btn{padding:4px 10px;background:rgba(148,163,184,0.1);color:#CBD5E1;border:1px solid rgba(148,163,184,0.2);border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.panel-btn:hover{background:rgba(148,163,184,0.2)}
+.panel-btn.active{background:rgba(59,130,246,0.2);color:#93C5FD;border-color:rgba(59,130,246,0.4)}
+.map-container{position:relative;width:100%;height:calc(100% - 40px);background:#1E293B;border-radius:8px;overflow:hidden;background-image:radial-gradient(circle at 30% 40%,rgba(59,130,246,0.08) 0%,transparent 40%),radial-gradient(circle at 70% 60%,rgba(16,185,129,0.08) 0%,transparent 40%)}
+
+/* Map SVG will fill this */
+.mecca-map{width:100%;height:100%}
+
+/* Camera points */
+.camera-dot{cursor:pointer;transition:all 0.3s}
+.camera-dot:hover{transform:scale(1.5)}
+.cam-active{fill:#10B981}
+.cam-warning{fill:#F59E0B}
+.cam-critical{fill:#EF4444;animation:blink 1.5s infinite}
+.cam-inactive{fill:#64748B}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.legend{position:absolute;top:52px;right:24px;background:rgba(15,23,42,0.95);border:1px solid #1E293B;border-radius:8px;padding:10px 12px;backdrop-filter:blur(4px)}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#CBD5E1;margin-bottom:4px}
+.legend-item:last-child{margin-bottom:0}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+
+.gate-label{font-size:9px;fill:#CBD5E1;font-weight:600;text-anchor:middle}
+.gate-box{fill:rgba(59,130,246,0.15);stroke:rgba(59,130,246,0.4);stroke-width:1}
+.area-label{font-size:11px;fill:#94A3B8;font-weight:500;text-anchor:middle}
+
+/* Video wall */
+.video-wall{background:#0F172A;border:1px solid #1E293B;border-radius:12px;padding:14px;height:200px}
+.video-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;height:calc(100% - 32px)}
+.video-feed{background:#1E293B;border-radius:6px;position:relative;overflow:hidden;border:1px solid #334155}
+.video-feed::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(59,130,246,0.05) 0%,rgba(16,185,129,0.05) 100%);z-index:0}
+.video-noise{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0.15;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0.03) 0,rgba(255,255,255,0.03) 1px,transparent 1px,transparent 2px)}
+.video-badge{position:absolute;top:6px;left:6px;background:rgba(239,68,68,0.9);color:#fff;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:600;z-index:2;display:flex;align-items:center;gap:4px}
+.rec-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.5s infinite}
+.video-label{position:absolute;bottom:6px;left:6px;right:6px;font-size:10px;color:#F8FAFC;font-weight:500;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,0.8)}
+.video-timestamp{position:absolute;top:6px;right:6px;font-family:monospace;font-size:9px;color:#F8FAFC;background:rgba(0,0,0,0.5);padding:2px 5px;border-radius:3px;z-index:2}
+.video-scene{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;height:60%;z-index:1;opacity:0.6}
+
+/* Right sidebar - Alerts */
+.sidebar-right{display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.alerts-panel{background:#0F172A;border:1px solid #1E293B;border-radius:12px;padding:14px;flex:1;display:flex;flex-direction:column;overflow:hidden}
+.alerts-list{flex:1;overflow-y:auto;padding-left:4px;margin-left:-4px;display:flex;flex-direction:column;gap:8px}
+.alerts-list::-webkit-scrollbar{width:4px}
+.alerts-list::-webkit-scrollbar-thumb{background:#334155;border-radius:2px}
+.alert-card{background:#1E293B;border-right:3px solid;border-radius:8px;padding:10px 12px;transition:all 0.2s;cursor:pointer}
+.alert-card:hover{background:#334155}
+.alert-critical{border-color:#EF4444;background:rgba(239,68,68,0.08)}
+.alert-high{border-color:#F59E0B;background:rgba(245,158,11,0.08)}
+.alert-medium{border-color:#3B82F6;background:rgba(59,130,246,0.05)}
+.alert-info{border-color:#10B981;background:rgba(16,185,129,0.05)}
+.alert-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.alert-type{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;letter-spacing:0.3px}
+.type-critical{background:rgba(239,68,68,0.2);color:#FCA5A5}
+.type-high{background:rgba(245,158,11,0.2);color:#FCD34D}
+.type-medium{background:rgba(59,130,246,0.2);color:#93C5FD}
+.type-info{background:rgba(16,185,129,0.2);color:#6EE7B7}
+.alert-time{font-size:10px;color:#64748B;font-family:monospace}
+.alert-title{font-size:12px;color:#F8FAFC;font-weight:500;line-height:1.4;margin-bottom:4px}
+.alert-meta{font-size:10px;color:#94A3B8;display:flex;gap:8px}
+.alert-meta span{display:inline-flex;align-items:center;gap:3px}
+
+.system-status{background:#0F172A;border:1px solid #1E293B;border-radius:12px;padding:14px}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.status-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(148,163,184,0.05);border-radius:6px}
+.status-dot-sm{width:6px;height:6px;border-radius:50%}
+.status-dot-sm.ok{background:#10B981}
+.status-dot-sm.warn{background:#F59E0B}
+.status-dot-sm.err{background:#EF4444}
+.status-label{font-size:10px;color:#CBD5E1}
+.status-value{font-size:10px;color:#64748B;margin-right:auto;font-family:monospace}
+
+/* Bottom pilgrims flow */
+.bottom-bar{background:#0F172A;border:1px solid #1E293B;border-radius:12px;padding:12px 16px;margin:0 16px 16px;display:flex;align-items:center;justify-content:space-between}
+.flow-item{display:flex;align-items:center;gap:10px;padding:0 14px;border-left:1px solid #1E293B}
+.flow-item:last-child{border-left:none}
+.flow-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.flow-icon.p1{background:rgba(139,92,246,0.15);color:#C4B5FD}
+.flow-icon.p2{background:rgba(59,130,246,0.15);color:#93C5FD}
+.flow-icon.p3{background:rgba(16,185,129,0.15);color:#6EE7B7}
+.flow-icon.p4{background:rgba(245,158,11,0.15);color:#FCD34D}
+.flow-icon.p5{background:rgba(239,68,68,0.15);color:#FCA5A5}
+.flow-content{display:flex;flex-direction:column}
+.flow-label{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:0.5px}
+.flow-value{font-size:18px;color:#F8FAFC;font-weight:600;line-height:1;margin-top:2px}
+.flow-sub{font-size:10px;color:#94A3B8;margin-top:2px}
+
+.digital-twin-badge{position:absolute;bottom:14px;left:14px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);border-radius:8px;padding:8px 12px;backdrop-filter:blur(4px)}
+.dt-title{font-size:10px;color:#C4B5FD;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.dt-status{font-size:12px;color:#DDD6FE;font-weight:500;margin-top:3px;display:flex;align-items:center;gap:6px}
+
+/* ===== Theme toggle button ===== */
+.top-right{display:flex;align-items:center;gap:10px}
+.theme-toggle{background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.2);border-radius:8px;padding:7px 11px;cursor:pointer;color:#CBD5E1;font-size:14px;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all 0.2s}
+.theme-toggle:hover{background:rgba(148,163,184,0.2);color:#F8FAFC}
+.theme-toggle .theme-label{font-size:11px;font-weight:500}
+.theme-icon-light{display:none}
+body.light .theme-icon-dark{display:none}
+body.light .theme-icon-light{display:inline}
+
+/* ===== LIGHT MODE OVERRIDES ===== */
+body.light{background:#F1F5F9;color:#1F2937}
+body.light .top-bar{background:#FFFFFF;border-bottom-color:#E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+body.light .logo-text{color:#0F172A}
+body.light .logo-sub{color:#64748B}
+body.light .top-stat{border-right-color:#E2E8F0}
+body.light .top-stat-val{color:#0F172A}
+body.light .top-stat-lbl{color:#64748B}
+body.light .time-now{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.35)}
+body.light .time-text{color:#047857}
+body.light .time-val{color:#0F172A}
+body.light .theme-toggle{background:rgba(15,23,42,0.05);border-color:rgba(15,23,42,0.12);color:#475569}
+body.light .theme-toggle:hover{background:rgba(15,23,42,0.1);color:#0F172A}
+
+body.light .section-title{color:#64748B}
+body.light .kpi-card{background:#FFFFFF;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+body.light .kpi-card:hover{border-color:#CBD5E1;box-shadow:0 2px 8px rgba(15,23,42,0.06)}
+body.light .kpi-label{color:#64748B}
+body.light .kpi-value{color:#0F172A}
+body.light .kpi-suffix{color:#94A3B8}
+body.light .trend-stable{background:rgba(148,163,184,0.15);color:#475569}
+
+body.light .map-panel{background:#FFFFFF;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+body.light .panel-title{color:#0F172A}
+body.light .panel-btn{background:rgba(15,23,42,0.05);color:#475569;border-color:rgba(15,23,42,0.12)}
+body.light .panel-btn:hover{background:rgba(15,23,42,0.1)}
+body.light .panel-btn.active{background:rgba(59,130,246,0.15);color:#1E40AF;border-color:rgba(59,130,246,0.45)}
+body.light .map-container{background:#E2E8F0;background-image:radial-gradient(circle at 30% 40%,rgba(59,130,246,0.08) 0%,transparent 40%),radial-gradient(circle at 70% 60%,rgba(16,185,129,0.08) 0%,transparent 40%)}
+body.light .legend{background:rgba(255,255,255,0.95);border-color:#E2E8F0}
+body.light .legend-item{color:#334155}
+body.light .gate-label{fill:#334155}
+body.light .area-label{fill:#475569;font-weight:600}
+body.light .gate-box{fill:rgba(59,130,246,0.12);stroke:rgba(59,130,246,0.6)}
+body.light g.map-roads{stroke:rgba(100,116,139,0.35)}
+
+body.light .video-wall{background:#FFFFFF;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+
+body.light .alerts-panel{background:#FFFFFF;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+body.light .alert-card{background:#F8FAFC}
+body.light .alert-card:hover{background:#F1F5F9}
+body.light .alert-title{color:#0F172A}
+body.light .alert-meta{color:#475569}
+body.light .alert-time{color:#94A3B8}
+body.light .alert-critical{background:rgba(239,68,68,0.08)}
+body.light .alert-high{background:rgba(245,158,11,0.08)}
+body.light .alert-medium{background:rgba(59,130,246,0.06)}
+body.light .alert-info{background:rgba(16,185,129,0.06)}
+body.light .alerts-list::-webkit-scrollbar-thumb{background:#CBD5E1}
+
+body.light .system-status{background:#FFFFFF;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+body.light .status-item{background:rgba(148,163,184,0.1)}
+body.light .status-label{color:#334155}
+body.light .status-value{color:#64748B}
+
+body.light .bottom-bar{background:#FFFFFF;border-color:#E2E8F0;box-shadow:0 1px 3px rgba(15,23,42,0.04)}
+body.light .flow-item{border-left-color:#E2E8F0}
+body.light .flow-label{color:#64748B}
+body.light .flow-value{color:#0F172A}
+body.light .flow-sub{color:#64748B}
+
+body.light .digital-twin-badge{background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.35)}
+body.light .dt-title{color:#7C3AED}
+body.light .dt-status{color:#6D28D9}
+</style>
+</head>
+<body class="">
+<script>
+/* Apply saved theme immediately to avoid flash of wrong theme */
+try{if(localStorage.getItem('dashboardTheme')==='light')document.body.classList.add('light');}catch(e){}
+</script>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="logo-section">
+    <div class="logo-icon">ع</div>
+    <div>
+      <div class="logo-text">غرفة عمليات عابر</div>
+      <div class="logo-sub">Aaber Control Room — Live Operations</div>
+    </div>
+  </div>
+  
+  <div class="top-stats">
+    <div class="top-stat"><div class="top-stat-val" id="pilgrimCount">847,553</div><div class="top-stat-lbl">حاج نشط الآن</div></div>
+    <div class="top-stat"><div class="top-stat-val" style="color:#6EE7B7">99.94%</div><div class="top-stat-lbl">SLA أداء النظام</div></div>
+    <div class="top-stat"><div class="top-stat-val">271 / 271</div><div class="top-stat-lbl">كاميرا متصلة</div></div>
+    <div class="top-stat"><div class="top-stat-val" style="color:#FCD34D">14</div><div class="top-stat-lbl">إنذار نشط</div></div>
+  </div>
+  
+  <div class="top-right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="تبديل بين الوضع الداكن والفاتح">
+      <span class="theme-icon-dark">☀️</span>
+      <span class="theme-icon-light">🌙</span>
+      <span class="theme-label"><span class="theme-icon-dark">فاتح</span><span class="theme-icon-light">داكن</span></span>
+    </button>
+    <div class="time-now">
+      <div class="pulse-dot"></div>
+      <div class="time-text">متصل</div>
+      <div class="time-val" id="liveTime">04:21:33</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Grid -->
+<div class="main-container">
+  
+  <!-- Left Sidebar - KPIs -->
+  <div class="sidebar-left">
+    <div class="section-title">مؤشرات الأداء الرئيسية</div>
+    
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">معدل العبور</div>
+        <div class="kpi-trend trend-up">▲ 12%</div>
+      </div>
+      <div class="kpi-value">4,832<span class="kpi-suffix">حاج/ساعة</span></div>
+      <div class="kpi-sparkline">
+        <div class="spark-bar" style="height:40%"></div>
+        <div class="spark-bar" style="height:55%"></div>
+        <div class="spark-bar" style="height:45%"></div>
+        <div class="spark-bar" style="height:70%"></div>
+        <div class="spark-bar" style="height:65%"></div>
+        <div class="spark-bar" style="height:80%"></div>
+        <div class="spark-bar" style="height:75%"></div>
+        <div class="spark-bar" style="height:90%"></div>
+        <div class="spark-bar" style="height:85%"></div>
+        <div class="spark-bar" style="height:100%"></div>
+      </div>
+    </div>
+    
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">زمن الانتظار</div>
+        <div class="kpi-trend trend-down">▼ 28%</div>
+      </div>
+      <div class="kpi-value">3.2<span class="kpi-suffix">دقيقة</span></div>
+      <div class="kpi-sparkline">
+        <div class="spark-bar" style="height:100%"></div>
+        <div class="spark-bar" style="height:85%"></div>
+        <div class="spark-bar" style="height:70%"></div>
+        <div class="spark-bar" style="height:75%"></div>
+        <div class="spark-bar" style="height:60%"></div>
+        <div class="spark-bar" style="height:55%"></div>
+        <div class="spark-bar" style="height:45%"></div>
+        <div class="spark-bar" style="height:50%"></div>
+        <div class="spark-bar" style="height:40%"></div>
+        <div class="spark-bar" style="height:35%"></div>
+      </div>
+    </div>
+    
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">ANPR — الدقة الآن</div>
+        <div class="kpi-trend trend-stable">▬ مستقر</div>
+      </div>
+      <div class="kpi-value" style="color:#6EE7B7">98.7<span class="kpi-suffix">%</span></div>
+      <div class="kpi-sparkline">
+        <div class="spark-bar" style="height:95%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:93%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:96%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:97%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:94%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:98%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:96%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:99%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:97%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+        <div class="spark-bar" style="height:98%;background:linear-gradient(180deg,#10B981,#059669)"></div>
+      </div>
+    </div>
+    
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">الاستجابة للطوارئ</div>
+        <div class="kpi-trend trend-up">▼ 15s</div>
+      </div>
+      <div class="kpi-value">52<span class="kpi-suffix">ثانية</span></div>
+      <div class="kpi-sparkline">
+        <div class="spark-bar" style="height:75%"></div>
+        <div class="spark-bar" style="height:80%"></div>
+        <div class="spark-bar" style="height:65%"></div>
+        <div class="spark-bar" style="height:55%"></div>
+        <div class="spark-bar" style="height:70%"></div>
+        <div class="spark-bar" style="height:50%"></div>
+        <div class="spark-bar" style="height:60%"></div>
+        <div class="spark-bar" style="height:45%"></div>
+        <div class="spark-bar" style="height:50%"></div>
+        <div class="spark-bar" style="height:42%"></div>
+      </div>
+    </div>
+    
+    <div class="kpi-card">
+      <div class="kpi-header">
+        <div class="kpi-label">SOC — تهديدات مكتشفة</div>
+        <div class="kpi-trend trend-up">▲ 3</div>
+      </div>
+      <div class="kpi-value">247<span class="kpi-suffix">محبطة اليوم</span></div>
+      <div class="kpi-sparkline">
+        <div class="spark-bar" style="height:30%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:45%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:60%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:40%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:55%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:70%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:85%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:75%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:90%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+        <div class="spark-bar" style="height:100%;background:linear-gradient(180deg,#EF4444,#DC2626)"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Center - Map + Video -->
+  <div class="center-main">
+    
+    <!-- Map Panel -->
+    <div class="map-panel">
+      <div class="panel-header">
+        <div class="panel-title">🎯 Digital Twin — محاكاة 3D للحرم والمشاعر</div>
+        <div class="panel-actions">
+          <button class="panel-btn" id="tab-map" onclick="switchMapView(&#39;map&#39;)">الخريطة</button>
+          <button class="panel-btn" id="tab-events" onclick="switchMapView(&#39;events&#39;)">الأحداث</button>
+          <button class="panel-btn" id="tab-density" onclick="switchMapView(&#39;density&#39;)">الكثافة</button>
+          <button class="panel-btn active" id="tab-twin" onclick="switchMapView(&#39;twin&#39;)">Digital Twin</button>
+        </div>
+      </div>
+      
+      <div class="map-container">
+        <!-- Legend -->
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#10B981"></div>نشط ومستقر</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#F59E0B"></div>تحذير</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#EF4444"></div>حرج</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#64748B"></div>غير نشط</div>
+        </div>
+        
+        <!-- Digital Twin Badge -->
+        <div class="digital-twin-badge">
+          <div class="dt-title">Digital Twin 3D</div>
+          <div class="dt-status">
+            <div class="pulse-dot" style="background:#C4B5FD"></div>
+            محاكاة حية — 127 حاج/ثانية
+          </div>
+        </div>
+        
+        <!-- Mecca Map SVG -->
+        <svg class="mecca-map" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
+          <!-- Roads -->
+          <g stroke="rgba(148,163,184,0.2)" stroke-width="1.5" fill="none" class="map-roads">
+            <path d="M 100,250 L 700,250"></path>
+            <path d="M 400,80 L 400,420"></path>
+            <path d="M 150,150 L 650,350"></path>
+            <path d="M 150,350 L 650,150"></path>
+            <circle cx="400" cy="250" r="60" stroke="rgba(245,158,11,0.4)" stroke-width="2" fill="rgba(245,158,11,0.05)"></circle>
+          </g>
+          
+          <!-- Haram area label -->
+          <text x="400" y="254" class="area-label" style="font-size:10px;fill:#FCD34D;font-weight:600">المسجد الحرام</text>
+          
+          <!-- Area labels — moved to map corners to avoid overlap with gate labels -->
+          <text x="130" y="50" class="area-label">المواقف الشمالية الغربية</text>
+          <text x="670" y="50" class="area-label">المواقف الشمالية الشرقية</text>
+          <text x="130" y="465" class="area-label">منى — الجمرات</text>
+          <text x="670" y="465" class="area-label">مشعر عرفات</text>
+          
+          <!-- 8 Gates -->
+          <!-- Gate 1: North -->
+          <g>
+            <rect x="370" y="70" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="400" y="84" class="gate-label">بوابة 1 — الشمال</text>
+            <!-- Cameras near gate 1 -->
+            <circle cx="360" cy="95" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="378" cy="98" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="395" cy="100" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="412" cy="98" r="3" class="camera-dot cam-warning"></circle>
+            <circle cx="430" cy="95" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Gate 2: NE -->
+          <g>
+            <rect x="570" y="120" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="600" y="134" class="gate-label">بوابة 2 — ش.شرق</text>
+            <circle cx="560" cy="145" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="580" cy="148" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="600" cy="150" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="620" cy="148" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="640" cy="145" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Gate 3: East -->
+          <g>
+            <rect x="700" y="240" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="730" y="254" class="gate-label">بوابة 3 — الشرق</text>
+            <circle cx="698" cy="235" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="712" cy="232" r="3" class="camera-dot cam-critical"></circle>
+            <circle cx="730" cy="230" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="748" cy="232" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="762" cy="235" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Gate 4: SE -->
+          <g>
+            <rect x="570" y="370" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="600" y="384" class="gate-label">بوابة 4 — ج.شرق</text>
+            <circle cx="560" cy="365" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="580" cy="362" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="600" cy="360" r="3" class="camera-dot cam-warning"></circle>
+            <circle cx="620" cy="362" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="640" cy="365" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Gate 5: South -->
+          <g>
+            <rect x="370" y="410" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="400" y="424" class="gate-label">بوابة 5 — الجنوب</text>
+            <circle cx="360" cy="405" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="378" cy="402" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="395" cy="400" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="412" cy="402" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="430" cy="405" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Gate 6: SW -->
+          <g>
+            <rect x="170" y="370" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="200" y="384" class="gate-label">بوابة 6 — ج.غرب</text>
+            <circle cx="160" cy="365" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="180" cy="362" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="200" cy="360" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="220" cy="362" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="240" cy="365" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Gate 7: West -->
+          <g>
+            <rect x="40" y="240" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="70" y="254" class="gate-label">بوابة 7 — الغرب</text>
+            <circle cx="38" cy="235" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="52" cy="232" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="70" cy="230" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="88" cy="232" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="102" cy="235" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Gate 8: NW -->
+          <g>
+            <rect x="170" y="120" width="60" height="20" class="gate-box" rx="3"></rect>
+            <text x="200" y="134" class="gate-label">بوابة 8 — ش.غرب</text>
+            <circle cx="160" cy="145" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="180" cy="148" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="200" cy="150" r="3" class="camera-dot cam-warning"></circle>
+            <circle cx="220" cy="148" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="240" cy="145" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Additional scattered cameras -->
+          <g>
+            <!-- Around Haram -->
+            <circle cx="350" cy="220" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="380" cy="210" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="420" cy="210" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="450" cy="220" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="350" cy="280" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="380" cy="290" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="420" cy="290" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="450" cy="280" r="3" class="camera-dot cam-active"></circle>
+            
+            <!-- On roads -->
+            <circle cx="250" cy="250" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="550" cy="250" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="400" cy="180" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="400" cy="330" r="3" class="camera-dot cam-active"></circle>
+            
+            <!-- Parking areas -->
+            <circle cx="150" cy="180" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="180" cy="200" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="620" cy="180" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="650" cy="200" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="150" cy="320" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="180" cy="340" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="620" cy="320" r="3" class="camera-dot cam-active"></circle>
+            <circle cx="650" cy="340" r="3" class="camera-dot cam-active"></circle>
+          </g>
+          
+          <!-- Flow lines showing traffic -->
+          <g stroke="rgba(16,185,129,0.4)" stroke-width="1" fill="none" stroke-dasharray="4,3">
+            <path d="M 100,100 Q 250,170 370,230">
+              <animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"></animate>
+            </path>
+            <path d="M 700,100 Q 550,170 430,230">
+              <animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"></animate>
+            </path>
+            <path d="M 700,400 Q 550,330 430,270">
+              <animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"></animate>
+            </path>
+            <path d="M 100,400 Q 250,330 370,270">
+              <animate attributeName="stroke-dashoffset" from="0" to="-14" dur="2s" repeatCount="indefinite"></animate>
+            </path>
+          </g>
+          
+          <!-- Density heat spots -->
+          <g id="baseDensity" style="display: none;">
+            <circle cx="400" cy="250" r="45" fill="rgba(245,158,11,0.15)"></circle>
+            <circle cx="730" cy="245" r="25" fill="rgba(239,68,68,0.2)">
+              <animate attributeName="r" values="22;28;22" dur="2s" repeatCount="indefinite"></animate>
+            </circle>
+          </g>
+          
+          <!-- DENSITY VIEW OVERLAY (hidden by default) -->
+          <g id="densityOverlay" style="display: none;">
+            <!-- Heat zones: high density areas -->
+            <defs>
+              <radialgradient id="heatHigh"><stop offset="0%" stop-color="rgba(239,68,68,0.7)"></stop><stop offset="100%" stop-color="rgba(239,68,68,0)"></stop></radialgradient>
+              <radialgradient id="heatMed"><stop offset="0%" stop-color="rgba(245,158,11,0.6)"></stop><stop offset="100%" stop-color="rgba(245,158,11,0)"></stop></radialgradient>
+              <radialgradient id="heatLow"><stop offset="0%" stop-color="rgba(16,185,129,0.5)"></stop><stop offset="100%" stop-color="rgba(16,185,129,0)"></stop></radialgradient>
+            </defs>
+            <!-- Around Haram — critical density -->
+            <circle cx="400" cy="250" r="80" fill="url(#heatHigh)"><animate attributeName="r" values="75;85;75" dur="3s" repeatCount="indefinite"></animate></circle>
+            <circle cx="730" cy="245" r="50" fill="url(#heatHigh)"><animate attributeName="r" values="45;55;45" dur="2s" repeatCount="indefinite"></animate></circle>
+            <!-- Medium density -->
+            <circle cx="400" cy="90" r="60" fill="url(#heatMed)"></circle>
+            <circle cx="600" cy="135" r="50" fill="url(#heatMed)"></circle>
+            <circle cx="600" cy="385" r="55" fill="url(#heatMed)"></circle>
+            <circle cx="200" cy="385" r="45" fill="url(#heatMed)"></circle>
+            <!-- Low density -->
+            <circle cx="70" cy="250" r="50" fill="url(#heatLow)"></circle>
+            <circle cx="200" cy="135" r="45" fill="url(#heatLow)"></circle>
+            <circle cx="400" cy="420" r="50" fill="url(#heatLow)"></circle>
+            
+            <!-- Density numbers -->
+            <g font-family="Segoe UI" font-weight="600">
+              <text x="400" y="254" fill="#fff" font-size="14" text-anchor="middle">628,083</text>
+              <text x="400" y="270" fill="#FCA5A5" font-size="9" text-anchor="middle">كثافة حرجة</text>
+              
+              <text x="730" y="249" fill="#fff" font-size="11" text-anchor="middle">1,240</text>
+              <text x="730" y="262" fill="#FCA5A5" font-size="8" text-anchor="middle">تدافع محتمل</text>
+              
+              <text x="400" y="94" fill="#fff" font-size="11" text-anchor="middle">3,247</text>
+              <text x="600" y="139" fill="#fff" font-size="11" text-anchor="middle">2,180</text>
+              <text x="600" y="389" fill="#fff" font-size="11" text-anchor="middle">4,520</text>
+              <text x="200" y="389" fill="#fff" font-size="11" text-anchor="middle">1,890</text>
+              
+              <text x="70" y="254" fill="#6EE7B7" font-size="10" text-anchor="middle">620</text>
+              <text x="200" y="139" fill="#6EE7B7" font-size="10" text-anchor="middle">850</text>
+              <text x="400" y="424" fill="#6EE7B7" font-size="10" text-anchor="middle">720</text>
+            </g>
+          </g>
+          
+          <!-- EVENTS VIEW OVERLAY (hidden by default) -->
+          <g id="eventsOverlay" style="display: none;">
+            <!-- Event icons at alert locations -->
+            <!-- Critical: Gate 3 crowding -->
+            <g>
+              <circle cx="730" cy="245" r="16" fill="rgba(239,68,68,0.95)" stroke="#fff" stroke-width="2">
+                <animate attributeName="r" values="14;18;14" dur="1.2s" repeatCount="indefinite"></animate>
+              </circle>
+              <text x="730" y="250" fill="#fff" font-size="16" text-anchor="middle" font-weight="700">!</text>
+              <rect x="650" y="200" width="160" height="34" rx="6" fill="rgba(239,68,68,0.95)" stroke="#fff" stroke-width="1"></rect>
+              <text x="730" y="215" fill="#fff" font-size="10" text-anchor="middle" font-weight="600">تدافع محتمل — بوابة 3</text>
+              <text x="730" y="227" fill="#FCA5A5" font-size="9" text-anchor="middle">14:36:48 • 1,240 حاج</text>
+            </g>
+            
+            <!-- High: Camera offline Gate 8 -->
+            <g>
+              <circle cx="200" cy="150" r="14" fill="rgba(245,158,11,0.95)" stroke="#fff" stroke-width="2">
+                <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"></animate>
+              </circle>
+              <text x="200" y="155" fill="#fff" font-size="14" text-anchor="middle" font-weight="700">📷</text>
+              <rect x="120" y="175" width="160" height="30" rx="6" fill="rgba(245,158,11,0.9)" stroke="#fff" stroke-width="1"></rect>
+              <text x="200" y="189" fill="#fff" font-size="10" text-anchor="middle" font-weight="600">CAM-8-03 انقطع</text>
+              <text x="200" y="201" fill="#FEF3C7" font-size="9" text-anchor="middle">14:35:12 • منذ 85 ثانية</text>
+            </g>
+            
+            <!-- High: ANPR degradation -->
+            <g>
+              <circle cx="712" cy="232" r="13" fill="rgba(245,158,11,0.95)" stroke="#fff" stroke-width="2"></circle>
+              <text x="712" y="237" fill="#fff" font-size="11" text-anchor="middle" font-weight="700">AI</text>
+            </g>
+            
+            <!-- Medium: Unauthorized entry attempt -->
+            <g>
+              <circle cx="395" cy="100" r="12" fill="rgba(59,130,246,0.95)" stroke="#fff" stroke-width="2"></circle>
+              <text x="395" y="105" fill="#fff" font-size="10" text-anchor="middle" font-weight="700">🚗</text>
+              <rect x="315" y="55" width="160" height="30" rx="6" fill="rgba(59,130,246,0.9)" stroke="#fff" stroke-width="1"></rect>
+              <text x="395" y="69" fill="#fff" font-size="10" text-anchor="middle" font-weight="600">تصريح منتهي — ABC-1234</text>
+              <text x="395" y="81" fill="#BFDBFE" font-size="9" text-anchor="middle">14:33:20 • رُفض تلقائياً</text>
+            </g>
+            
+            <!-- Medium: HCI heat warning -->
+            <g>
+              <circle cx="100" cy="150" r="12" fill="rgba(59,130,246,0.95)" stroke="#fff" stroke-width="2"></circle>
+              <text x="100" y="155" fill="#fff" font-size="10" text-anchor="middle" font-weight="700">🌡</text>
+            </g>
+            
+            <!-- Info: Shift change -->
+            <g>
+              <circle cx="400" cy="250" r="14" fill="rgba(16,185,129,0.9)" stroke="#fff" stroke-width="2"></circle>
+              <text x="400" y="255" fill="#fff" font-size="11" text-anchor="middle" font-weight="700">👥</text>
+            </g>
+            
+            <!-- Event counter badge -->
+            <g>
+              <rect x="20" y="20" width="200" height="48" rx="8" fill="rgba(15,23,42,0.95)" stroke="rgba(239,68,68,0.5)" stroke-width="1"></rect>
+              <text x="150" y="40" fill="#F8FAFC" font-size="12" font-weight="600">14 حدث نشط</text>
+              <text x="190" y="56" fill="#94A3B8" font-size="10">1 حرج • 3 عالٍ • 4 متوسط • 6 معلومة</text>
+            </g>
+          </g>
+          
+          <!-- DIGITAL TWIN OVERLAY (hidden by default) -->
+          <g id="twinOverlay" style="display: inline;">
+            <!-- 3D isometric effect for Haram -->
+            <defs>
+              <lineargradient id="twin3d" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(139,92,246,0.5)"></stop>
+                <stop offset="100%" stop-color="rgba(76,29,149,0.2)"></stop>
+              </lineargradient>
+              <lineargradient id="twinGround" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(139,92,246,0.15)"></stop>
+                <stop offset="100%" stop-color="rgba(76,29,149,0.05)"></stop>
+              </lineargradient>
+            </defs>
+            
+            <!-- Simulated 3D base -->
+            <ellipse cx="400" cy="250" rx="280" ry="140" fill="url(#twinGround)" stroke="rgba(139,92,246,0.3)" stroke-width="1" stroke-dasharray="4,3"></ellipse>
+            <ellipse cx="400" cy="250" rx="220" ry="110" fill="none" stroke="rgba(139,92,246,0.2)" stroke-width="1" stroke-dasharray="4,3"></ellipse>
+            <ellipse cx="400" cy="250" rx="150" ry="75" fill="none" stroke="rgba(139,92,246,0.2)" stroke-width="1" stroke-dasharray="4,3"></ellipse>
+            
+            <!-- Haram 3D representation -->
+            <g transform="translate(400,250)">
+              <!-- Kaaba cube -->
+              <polygon points="-25,-20 25,-20 35,-10 35,20 -35,20 -35,-10" fill="url(#twin3d)" stroke="#C4B5FD" stroke-width="1.5"></polygon>
+              <polygon points="-25,-20 25,-20 35,-10 -15,-10" fill="rgba(139,92,246,0.7)" stroke="#C4B5FD" stroke-width="1"></polygon>
+              <polygon points="25,-20 35,-10 35,20 25,10" fill="rgba(76,29,149,0.5)" stroke="#C4B5FD" stroke-width="1"></polygon>
+              <text x="0" y="40" fill="#DDD6FE" font-size="10" text-anchor="middle" font-weight="600">الكعبة المشرفة</text>
+            </g>
+            
+            <!-- Simulated pilgrim particles -->
+            <g>
+              <circle cx="350" cy="230" r="2" fill="#C4B5FD" opacity="0.8"><animate attributeName="cx" values="350;380;410;380;350" dur="8s" repeatCount="indefinite"></animate></circle>
+              <circle cx="450" cy="240" r="2" fill="#C4B5FD" opacity="0.8"><animate attributeName="cx" values="450;420;390;420;450" dur="7s" repeatCount="indefinite"></animate></circle>
+              <circle cx="380" cy="280" r="2" fill="#A78BFA" opacity="0.8"><animate attributeName="cy" values="280;260;240;260;280" dur="6s" repeatCount="indefinite"></animate></circle>
+              <circle cx="430" cy="220" r="2" fill="#A78BFA" opacity="0.8"><animate attributeName="cy" values="220;240;260;240;220" dur="9s" repeatCount="indefinite"></animate></circle>
+              <circle cx="370" cy="250" r="2" fill="#C4B5FD" opacity="0.6"><animate attributeName="cx" values="370;400;430;400;370" dur="10s" repeatCount="indefinite"></animate></circle>
+              <circle cx="430" cy="260" r="2" fill="#DDD6FE" opacity="0.7"><animate attributeName="cx" values="430;400;370;400;430" dur="8s" repeatCount="indefinite"></animate></circle>
+              <circle cx="395" cy="210" r="2" fill="#A78BFA" opacity="0.7"><animate attributeName="cy" values="210;240;270;240;210" dur="11s" repeatCount="indefinite"></animate></circle>
+              <circle cx="410" cy="290" r="2" fill="#C4B5FD" opacity="0.8"><animate attributeName="cy" values="290;260;230;260;290" dur="7s" repeatCount="indefinite"></animate></circle>
+            </g>
+            
+            <!-- Prediction zones -->
+            <g>
+              <circle cx="730" cy="245" r="30" fill="none" stroke="#FCA5A5" stroke-width="2" stroke-dasharray="5,3">
+                <animate attributeName="r" values="25;35;25" dur="2s" repeatCount="indefinite"></animate>
+              </circle>
+              <text x="730" y="215" fill="#FCA5A5" font-size="10" text-anchor="middle" font-weight="600">توقع تدافع</text>
+              <text x="730" y="285" fill="#FCA5A5" font-size="9" text-anchor="middle">خلال 4 دقائق</text>
+            </g>
+            
+            <!-- Twin info box -->
+            <g>
+              <rect x="20" y="20" width="260" height="80" rx="8" fill="rgba(15,23,42,0.95)" stroke="rgba(139,92,246,0.5)" stroke-width="1"></rect>
+              <text x="210" y="40" fill="#C4B5FD" font-size="11" font-weight="700">Digital Twin — محاكاة 3D</text>
+              <text x="190" y="58" fill="#F8FAFC" font-size="10">معالجة: 127 حاج/ثانية</text>
+              <text x="180" y="72" fill="#F8FAFC" font-size="10">دقة التنبؤ: 94.2%</text>
+              <text x="230" y="86" fill="#6EE7B7" font-size="10">✓ نموذج حديث — آخر تدريب قبل 2 ساعة</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Video Wall -->
+    <div class="video-wall">
+      <div class="panel-header">
+        <div class="panel-title">📹 Live Feed — كاميرات مختارة (من 271)</div>
+        <div class="panel-actions">
+          <button class="panel-btn">1</button>
+          <button class="panel-btn active">4</button>
+          <button class="panel-btn">9</button>
+          <button class="panel-btn">16</button>
+        </div>
+      </div>
+      
+      <div class="video-grid">
+        <div class="video-feed">
+          <div class="video-noise"></div>
+          <svg class="video-scene" viewBox="0 0 100 60">
+            <rect width="100" height="60" fill="rgba(59,130,246,0.1)"></rect>
+            <rect x="10" y="20" width="15" height="30" fill="rgba(148,163,184,0.3)"></rect>
+            <rect x="30" y="15" width="15" height="35" fill="rgba(148,163,184,0.3)"></rect>
+            <rect x="50" y="18" width="15" height="32" fill="rgba(148,163,184,0.3)"></rect>
+            <rect x="70" y="22" width="15" height="28" fill="rgba(148,163,184,0.3)"></rect>
+            <line x1="0" y1="55" x2="100" y2="55" stroke="rgba(148,163,184,0.4)" stroke-width="0.5"></line>
+          </svg>
+          <div class="video-badge"><div class="rec-dot"></div>LIVE</div>
+          <div class="video-timestamp">14:37:22</div>
+          <div class="video-label">CAM-1-03 • بوابة 1 — الدخول</div>
+        </div>
+        
+        <div class="video-feed">
+          <div class="video-noise"></div>
+          <svg class="video-scene" viewBox="0 0 100 60">
+            <rect width="100" height="60" fill="rgba(16,185,129,0.08)"></rect>
+            <path d="M 0,30 Q 50,20 100,30" stroke="rgba(148,163,184,0.4)" fill="none" stroke-width="1"></path>
+            <circle cx="25" cy="30" r="3" fill="rgba(245,158,11,0.6)"></circle>
+            <circle cx="50" cy="28" r="3" fill="rgba(245,158,11,0.6)"></circle>
+            <circle cx="75" cy="32" r="3" fill="rgba(245,158,11,0.6)"></circle>
+          </svg>
+          <div class="video-badge"><div class="rec-dot"></div>LIVE</div>
+          <div class="video-timestamp">14:37:22</div>
+          <div class="video-label">CAM-3-12 • بوابة 3 — ANPR</div>
+        </div>
+        
+        <div class="video-feed">
+          <div class="video-noise"></div>
+          <svg class="video-scene" viewBox="0 0 100 60">
+            <rect width="100" height="60" fill="rgba(139,92,246,0.08)"></rect>
+            <g fill="rgba(148,163,184,0.4)">
+              <circle cx="20" cy="25" r="2"></circle>
+              <circle cx="30" cy="30" r="2"></circle>
+              <circle cx="40" cy="28" r="2"></circle>
+              <circle cx="50" cy="35" r="2"></circle>
+              <circle cx="60" cy="30" r="2"></circle>
+              <circle cx="70" cy="25" r="2"></circle>
+              <circle cx="80" cy="32" r="2"></circle>
+              <circle cx="25" cy="40" r="2"></circle>
+              <circle cx="45" cy="42" r="2"></circle>
+              <circle cx="65" cy="40" r="2"></circle>
+            </g>
+          </svg>
+          <div class="video-badge"><div class="rec-dot"></div>LIVE</div>
+          <div class="video-timestamp">14:37:22</div>
+          <div class="video-label">CAM-5-07 • الحرم — المدخل</div>
+        </div>
+        
+        <div class="video-feed">
+          <div class="video-noise"></div>
+          <svg class="video-scene" viewBox="0 0 100 60">
+            <rect width="100" height="60" fill="rgba(239,68,68,0.1)"></rect>
+            <rect x="5" y="30" width="90" height="8" fill="rgba(148,163,184,0.2)"></rect>
+            <rect x="15" y="33" width="10" height="5" fill="rgba(245,158,11,0.8)"></rect>
+            <rect x="30" y="33" width="10" height="5" fill="rgba(16,185,129,0.8)"></rect>
+            <rect x="45" y="33" width="10" height="5" fill="rgba(59,130,246,0.8)"></rect>
+            <rect x="60" y="33" width="10" height="5" fill="rgba(245,158,11,0.8)"></rect>
+          </svg>
+          <div class="video-badge" style="background:rgba(245,158,11,0.9)"><div class="rec-dot"></div>تنبيه</div>
+          <div class="video-timestamp">14:37:22</div>
+          <div class="video-label">CAM-7-21 • مواقف السيارات B</div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- Right Sidebar - Alerts + System Status -->
+  <div class="sidebar-right">
+    
+    <div class="alerts-panel">
+      <div class="panel-header">
+        <div class="panel-title">🚨 الإنذارات النشطة</div>
+        <div style="font-size:11px;color:#FCA5A5;background:rgba(239,68,68,0.1);padding:3px 10px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);font-weight:600">14</div>
+      </div>
+      
+      <div class="alerts-list">
+        <div class="alert-card alert-critical">
+          <div class="alert-header">
+            <div class="alert-type type-critical">حرج</div>
+            <div class="alert-time">14:36:48</div>
+          </div>
+          <div class="alert-title">اكتشاف تدافع محتمل — بوابة 3</div>
+          <div class="alert-meta">
+            <span>📍 بوابة 3 — الشرق</span>
+            <span>👥 +1,240 حاج</span>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-high">
+          <div class="alert-header">
+            <div class="alert-type type-high">عالٍ</div>
+            <div class="alert-time">14:35:12</div>
+          </div>
+          <div class="alert-title">كاميرا CAM-8-03 فقدت الإرسال</div>
+          <div class="alert-meta">
+            <span>📷 بوابة 8 — ش.غرب</span>
+            <span>⏱ 85 ثانية</span>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-high">
+          <div class="alert-header">
+            <div class="alert-type type-high">عالٍ</div>
+            <div class="alert-time">14:34:56</div>
+          </div>
+          <div class="alert-title">معدل ANPR انخفض إلى 94% — CAM-3-05</div>
+          <div class="alert-meta">
+            <span>📷 بوابة 3</span>
+            <span>🤖 AI: غبار على العدسة</span>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-medium">
+          <div class="alert-header">
+            <div class="alert-type type-medium">متوسط</div>
+            <div class="alert-time">14:33:20</div>
+          </div>
+          <div class="alert-title">محاولة دخول بتصريح منتهي — CAM-1-03</div>
+          <div class="alert-meta">
+            <span>🚗 ABC-1234</span>
+            <span>⚠️ تم الرفض تلقائياً</span>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-medium">
+          <div class="alert-header">
+            <div class="alert-type type-medium">متوسط</div>
+            <div class="alert-time">14:32:45</div>
+          </div>
+          <div class="alert-title">تحذير من حرارة مرتفعة — خادم HCI #3</div>
+          <div class="alert-meta">
+            <span>🌡️ 68°C</span>
+            <span>⚡ الحد: 75°C</span>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-header">
+            <div class="alert-type type-info">معلومة</div>
+            <div class="alert-time">14:31:10</div>
+          </div>
+          <div class="alert-title">تبديل الشفت — 12 مشغل جديد متصل</div>
+          <div class="alert-meta">
+            <span>👥 الشفت المسائي</span>
+            <span>✓ مستقر</span>
+          </div>
+        </div>
+        
+        <div class="alert-card alert-info">
+          <div class="alert-header">
+            <div class="alert-type type-info">معلومة</div>
+            <div class="alert-time">14:28:33</div>
+          </div>
+          <div class="alert-title">تحديث نماذج AI مُجدول — 02:00</div>
+          <div class="alert-meta">
+            <span>🤖 VCA + ANPR</span>
+            <span>⏰ 11h 22m</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="system-status">
+      <div class="section-title">حالة الأنظمة الـ 21</div>
+      <div class="status-grid">
+        <div class="status-item"><div class="status-dot-sm ok"></div><div class="status-label">منصة عابر</div><div class="status-value">99.9%</div></div>
+        <div class="status-item"><div class="status-dot-sm ok"></div><div class="status-label">PSIM</div><div class="status-value">✓</div></div>
+        <div class="status-item"><div class="status-dot-sm ok"></div><div class="status-label">ANPR</div><div class="status-value">98.7%</div></div>
+        <div class="status-item"><div class="status-dot-sm warn"></div><div class="status-label">VCA</div><div class="status-value">94%</div></div>
+        <div class="status-item"><div class="status-dot-sm ok"></div><div class="status-label">Digital Twin</div><div class="status-value">✓</div></div>
+        <div class="status-item"><div class="status-dot-sm ok"></div><div class="status-label">RAG Chatbots</div><div class="status-value">6/6</div></div>
+        <div class="status-item"><div class="status-dot-sm ok"></div><div class="status-label">HCI Cluster</div><div class="status-value">100%</div></div>
+        <div class="status-item"><div class="status-dot-sm ok"></div><div class="status-label">SOC</div><div class="status-value">✓</div></div>
+      </div>
+    </div>
+    
+  </div>
+  
+</div>
+
+<!-- Bottom Pilgrim Flow Bar -->
+<div class="bottom-bar">
+  <div class="flow-item">
+    <div class="flow-icon p1">①</div>
+    <div class="flow-content">
+      <div class="flow-label">التسجيل المسبق</div>
+      <div class="flow-value">127,450</div>
+      <div class="flow-sub">آخر 24 ساعة</div>
+    </div>
+  </div>
+  
+  <div class="flow-item">
+    <div class="flow-icon p2">②</div>
+    <div class="flow-content">
+      <div class="flow-label">عند البوابات</div>
+      <div class="flow-value">3,247</div>
+      <div class="flow-sub">الآن</div>
+    </div>
+  </div>
+  
+  <div class="flow-item">
+    <div class="flow-icon p3">③</div>
+    <div class="flow-content">
+      <div class="flow-label">في نقاط الفرز</div>
+      <div class="flow-value">1,892</div>
+      <div class="flow-sub">متوسط 8 ثوانٍ</div>
+    </div>
+  </div>
+  
+  <div class="flow-item">
+    <div class="flow-icon p4">④</div>
+    <div class="flow-content">
+      <div class="flow-label">في المواقف</div>
+      <div class="flow-value">214,680</div>
+      <div class="flow-sub">87% إشغال</div>
+    </div>
+  </div>
+  
+  <div class="flow-item">
+    <div class="flow-icon p5">⑤</div>
+    <div class="flow-content">
+      <div class="flow-label">داخل الحرم</div>
+      <div class="flow-value">628,083</div>
+      <div class="flow-sub">طبيعي — لا تدافع</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Theme toggle — switch between dark and light mode, persist via localStorage
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  try{
+    localStorage.setItem('dashboardTheme', document.body.classList.contains('light') ? 'light' : 'dark');
+  }catch(e){}
+}
+
+// Map view switching
+function switchMapView(view) {
+  // Update tab buttons
+  document.querySelectorAll('#tab-map, #tab-events, #tab-density, #tab-twin').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + view).classList.add('active');
+  
+  // Get overlay elements
+  const eventsOverlay = document.getElementById('eventsOverlay');
+  const densityOverlay = document.getElementById('densityOverlay');
+  const twinOverlay = document.getElementById('twinOverlay');
+  const baseDensity = document.getElementById('baseDensity');
+  const panelTitle = document.querySelector('.map-panel .panel-title');
+  
+  // Hide all overlays
+  eventsOverlay.style.display = 'none';
+  densityOverlay.style.display = 'none';
+  twinOverlay.style.display = 'none';
+  baseDensity.style.display = 'inline';
+  
+  // Show selected overlay and update title
+  switch(view) {
+    case 'map':
+      panelTitle.textContent = '🗺️ خريطة مكة المكرمة — البوابات الـ 8 والكاميرات الـ 271';
+      break;
+    case 'events':
+      eventsOverlay.style.display = 'inline';
+      baseDensity.style.display = 'none';
+      panelTitle.textContent = '🚨 الأحداث النشطة — 14 حدث على الخريطة';
+      break;
+    case 'density':
+      densityOverlay.style.display = 'inline';
+      baseDensity.style.display = 'none';
+      panelTitle.textContent = '🔥 خريطة الكثافة الحرارية — توزيع الحجاج في الوقت الحقيقي';
+      break;
+    case 'twin':
+      twinOverlay.style.display = 'inline';
+      baseDensity.style.display = 'none';
+      panelTitle.textContent = '🎯 Digital Twin — محاكاة 3D للحرم والمشاعر';
+      break;
+  }
+}
+
+// Live clock
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('liveTime');
+  if (el) el.textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Animate pilgrim counter
+let pilgrimCount = 847320;
+setInterval(() => {
+  pilgrimCount += Math.floor(Math.random() * 40 - 15);
+  const el = document.getElementById('pilgrimCount');
+  if (el) el.textContent = pilgrimCount.toLocaleString('en-US');
+}, 3000);
+
+// Add hover effects to camera dots
+document.querySelectorAll('.camera-dot').forEach(dot => {
+  dot.addEventListener('click', function() {
+    const cls = this.getAttribute('class');
+    let status = 'نشط';
+    if (cls.includes('cam-critical')) status = 'حرج — يحتاج تدخل فوري';
+    else if (cls.includes('cam-warning')) status = 'تحذير';
+    
+    alert(`كاميرا: ${status}\nتحديد الدقيق: CAM-${Math.floor(Math.random() * 10 + 1)}-${String(Math.floor(Math.random() * 30 + 1)).padStart(2,'0')}\nالدقة: 5MP\nالحالة: بث حي`);
+  });
+});
+</script>
+
+
+
+</body></html>
